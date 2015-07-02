@@ -7,15 +7,16 @@ public class app {
 		
 public static void main(String[] args) {
 		
-		String urlLogin = "https://www.reddit.com/api/login/yourusername/";
-		String urlHome = "http://www.reddit.com/";
+		String urlLogin = "https://id.glam.ac.uk/cas/login?service=http%3A%2F%2Funilife.southwales.ac.uk%2Fcas_session";
+		String urlHome = "http://unilife.southwales.ac.uk/";
 		
 		Scraper result = new Scraper(
 				urlLogin, 
 				urlHome,
 				Method.GET,
-				"{op : login-main, api_type : json, user : yourusername, passwd : yourpassword}",
-				"{'html':'html'}"	
+				"{username: yourstudentid , password: yourpassword, _eventId: submit, submit: LOGIN}",
+				"{'html':'html'}",
+				"{lt , execution}"
 		);
 		
 		System.out.println(result);
