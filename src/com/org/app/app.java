@@ -15,12 +15,7 @@ public static void main(String[] args) {
 				urlHome,
 				Method.GET,
 				"{op : login-main, api_type : json, user : yourusername, passwd : yourpassword}",
-				"{'html':'html'}"
-				
-				
-				
-				
-				
+				"{'html':'html'}"	
 		);
 		
 		System.out.println(result);
