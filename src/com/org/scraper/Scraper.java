@@ -223,55 +223,6 @@ public class Scraper{
 	
 	public void auth(String urlLogin, String urlHome, String[] params){
 		auth(urlLogin, urlHome, params, null);
-		return;
-		
-		/*// Add random param bypass in this function
-		connect(urlLogin); is_connected = false;
-		setProperty(Scraper.Props.METHOD, Method.GET);
-		execute();
-		
-		// Fetch random generated field:
-		String random_field = "";
-		String random_field2 = "";
-		try {
-			Document curld = response_conn.parse();
-			random_field = curld.select("input[name=lt]").val();
-			random_field2 = curld.select("input[name=execution]").val();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}*/
-		/*
-		// Actually authenticate:
-		connect(urlLogin); is_connected = false;
-		
-		Map<String, String> params_map = Util.strArray_to_map(params);
-		params_map.put("lt", random_field); // Put the random generated field
-		params_map.put("execution",random_field2);
-		
-		System.out.println(params_map);
-		
-		setProperty(Scraper.Props.PARAMS, params_map);
-		setProperty(Scraper.Props.METHOD, Method.POST);
-		setProperty(Scraper.Props.IGNRCONTTYPE, true);
-		
-		setProperty(Scraper.Props.COOKIE, response_conn.cookies()); // Set cookies from 1st GET request for authentication
-		
-		System.out.println(response_conn.cookies());
-		
-		execute();
-		
-		//
-			Document doc = null;
-			try {
-				doc = response_conn.parse();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		//
-		
-		connect(urlHome);
-		setProperty(Scraper.Props.COOKIE, response_conn.cookies());*/
 	}
 	
 	// SCRAPING FUNCTIONS:
