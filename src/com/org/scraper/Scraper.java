@@ -218,7 +218,6 @@ public class Scraper{
 		execute();
 		
 		connect(urlHome);
-		setProperty(Scraper.Props.COOKIE, response_conn.cookies());
 	}
 	
 	public void auth(String urlLogin, String urlHome, String[] params){
@@ -244,8 +243,12 @@ public class Scraper{
 				conn.method(method);
 			
 			is_method_set = false;
-						
-			JSONIterator.update(targetsObj, conn.execute().parse());
+			
+			setProperty(Scraper.Props.COOKIE, response_conn.cookies()); // Set cookies to keep connection on
+			
+			execute();
+			
+			JSONIterator.update(targetsObj, response_conn.parse());
 			
 		} catch (IOException | ParseException e) {
 			e.printStackTrace();
