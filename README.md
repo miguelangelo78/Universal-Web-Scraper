@@ -40,3 +40,35 @@ Scraper result = new Scraper(
 
 System.out.println(result); // Output the result after authentication
 ```
+
+If you want to scrape from a more complex website (like facebook) AND also take a screenshot of it, you can do it like this:
+
+``` Java
+String urlLogin = "https://www.facebook.com/login.php?login_attempt=1";
+String urlHome = "https://www.facebook.com/";
+
+// Initialize:
+Scraper result = new Scraper(
+	urlLogin, 
+	urlHome,
+	true,
+	"{email: youremail, pass: yourpassword, persistent: 1, default_persistent: 1, timezone: -60, locale: pt_PT}",
+	"{lsd, lgndim, lgnrnd, lgnjs, qsstamp}"
+);
+
+// Set callback:
+result.setProperty(Scraper.Props.ENGINE_GET_CALLBACK, new EngineCallback() {
+	public void after_get(PhantomJS ctx) {
+		// Take screenshot of your facebook page
+		ctx.take_screenshot("C:\\Users\\Me\\Desktop\\screenshot.png", true);
+	}
+
+	public void before_get(PhantomJS ctx) { }
+});
+
+// Scrape the whole document:
+result.scrape(urlHome, Method.GET, "{'html':'html'}") 
+      .export("C:\\Users\\Me\\Desktop\\scraped.json", false, true);
+
+System.out.println("Done scraping");
+```
