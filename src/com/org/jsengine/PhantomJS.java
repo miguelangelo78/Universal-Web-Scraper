@@ -73,14 +73,14 @@ public class PhantomJS {
 		
 		// Do extra stuff down here, like taking screenshots or interacting with the UI:
 		
+		take_screenshot("C:\\Users\\Miguel\\Desktop\\screenshot.png");
+	}
+	
+	private void take_screenshot(String screensht_filepath){
 		File scrFile = ((TakesScreenshot)client).getScreenshotAs(OutputType.FILE);
-		// Now you can do whatever you need to do with it, for example copy somewhere
-		try {
-			FileUtils.copyFile(scrFile, new File("C:\\Users\\Miguel\\Desktop\\screenshot.png"));
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		try { 
+			FileUtils.copyFile(scrFile, new File(screensht_filepath));
+		} catch (IOException e) { e.printStackTrace(); }
 	}
 	
 	public void quit(){
