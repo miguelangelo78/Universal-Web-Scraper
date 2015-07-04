@@ -14,7 +14,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import com.org.jsengine.RhinoJS;
+import com.org.jsengine.PhantomJS;
 import com.org.jsoniterator.JSONIterator;
 import com.org.misc.Util;
 
@@ -28,6 +28,7 @@ public class Scraper{
 	private boolean is_connected = false;
 	private boolean is_method_set = false;
 	private JSONObject data;
+	private PhantomJS engine;
 	
 	private Connection conn;
 	private Response response_conn;
@@ -37,6 +38,7 @@ public class Scraper{
 	
 	public Scraper(String urlLogin, String urlDest, Method method, boolean using_headless, String params, String targets){
 		is_using_headless = using_headless;
+		engine = new PhantomJS();
 		auth(urlLogin,urlDest, Util.jsonStringToArray(params));
 		scrape(urlDest, method, targets);
 	}
@@ -48,6 +50,7 @@ public class Scraper{
 	
 	public Scraper(String urlLogin, String urlDest, Method method, boolean using_headless, String params, String targets, String bytokens){
 		is_using_headless = using_headless;
+		engine = new PhantomJS();
 		auth(urlLogin,urlDest, Util.jsonStringToArray(params), Util.jsonStringToArray(bytokens));
 		scrape(urlDest, method, targets);
 	}
@@ -58,6 +61,7 @@ public class Scraper{
 	}
 	
 	public Scraper(String urlLogin, String urlDest, Method method, boolean using_headless, String params, String bytokens, boolean usebytokens){
+		engine = new PhantomJS();
 		auth(urlLogin,urlDest, Util.jsonStringToArray(params), Util.jsonStringToArray(bytokens));
 		is_using_headless = using_headless;
 	}
@@ -67,6 +71,7 @@ public class Scraper{
 	}
 		
 	public Scraper(String urlLogin, String urlDest, Method method, boolean using_headless, String params){
+		engine = new PhantomJS();
 		auth(urlLogin,urlDest, Util.jsonStringToArray(params));
 		is_using_headless = using_headless;
 	}
@@ -81,9 +86,10 @@ public class Scraper{
 	}
 	
 	public Scraper(String url, boolean using_headless){
+		engine = new PhantomJS();
+		is_using_headless = using_headless;
 		conn = Jsoup.connect(url);
 		is_connected = true;
-		is_using_headless = using_headless;
 	}
 	
 	public Scraper(String url, Method method, boolean using_headless, String targets){
@@ -283,25 +289,26 @@ public class Scraper{
 			
 			Map<String, String> cookies_carry = response_conn.cookies(); // Carry the cookies from previous connection
 			
-			setProperty(Scraper.Props.COOKIE, cookies_carry); // Set cookies to keep connection on
-			
-			execute();
-			
+			// Try to access homepage (intented url), with a headless browser OR regular Jsoup
 			Document doc = null;
 			if(is_using_headless){
 				// Before actually parsing the document, execute the javascript inside the html:
-				RhinoJS engine = new RhinoJS(response_conn.parse().html(), url, cookies_carry); // Add more parameters and launch this on a thread
+				engine.run(url, cookies_carry);
 				
 				// TODO: Now wait and interact with the 'engine' object
 				
 				// After the page is finished, parse the result:
-				
 				doc = engine.getDocument();
+				engine.quit(); // No need to use this anymore
 			}
-			else
+			else{
+				setProperty(Scraper.Props.COOKIE, cookies_carry); // Set cookies to keep connection on
+				execute();
+				
 				doc = response_conn.parse();
+			}
 			
-			JSONIterator.update(targetsObj, doc);
+			JSONIterator.update(targetsObj, doc); // Update the targets!
 			
 		} catch (IOException | ParseException e) {
 			e.printStackTrace();

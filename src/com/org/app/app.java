@@ -7,12 +7,14 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 
 import org.jsoup.Connection.Method;
-
 import com.org.scraper.Scraper;
 
 public class app {
 
-public static void main(String[] args) {
+	public static void main(String[] args) {
+
+		// TODO: ADD CORS BYPASS REQUESTS
+		// TODO: ADD FILE HANDLING (IN AND OUT, BOTH WITH ARRAYS OR SINGLE)
 		
 		String urlLogin = "https://www.facebook.com/login.php?login_attempt=1";
 		String urlHome = "https://www.facebook.com/";
@@ -22,7 +24,7 @@ public static void main(String[] args) {
 				urlHome,
 				Method.GET,
 				true,
-				"{email: youremail, pass: yourpassword, persistent: 1, default_persistent: 1, timezone: -60, locale: pt_PT}",
+				"{email: youremail, pass: yourpass, persistent: 1, default_persistent: 1, timezone: -60, locale: pt_PT}",
 				"{'html':'html'}",
 				"{lsd, lgndim, lgnrnd, lgnjs, qsstamp}"
 		);
