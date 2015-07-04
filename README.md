@@ -1,6 +1,6 @@
 # Universal-Web-Scraper
 Scrapes data from any website provided with a template target for it to fetch.
-This project uses the Java libraries JSoup (http://jsoup.org/download),  JSON.Simple (https://code.google.com/p/json-simple/), JSON in Java (http://www.json.org/java/) and HtmlUnit (http://htmlunit.sourceforge.net/).
+This project uses the Java libraries JSoup (http://jsoup.org/download),  JSON.Simple (https://code.google.com/p/json-simple/), JSON in Java (http://www.json.org/java/), Selenium (http://www.seleniumhq.org/), PhantomJS (http://phantomjs.org/) and GhostDriver (https://github.com/detro/ghostdriver).
 
 
 ----------
