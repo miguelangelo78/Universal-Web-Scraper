@@ -10,6 +10,7 @@ import java.util.logging.Level;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
+import com.gargoylesoftware.htmlunit.BrowserVersion;
 import com.gargoylesoftware.htmlunit.NicelyResynchronizingAjaxController;
 import com.gargoylesoftware.htmlunit.StringWebResponse;
 import com.gargoylesoftware.htmlunit.WebClient;
@@ -68,7 +69,7 @@ public class RhinoJS {
 	public RhinoJS(String raw_html, String base_url, Map<String, String> cookies){
 		warnings(true);
 		
-		client = new WebClient();
+		client = new WebClient(BrowserVersion.FIREFOX_38);
 		client.getOptions().setJavaScriptEnabled(true);
 		client.getOptions().setActiveXNative(true);
 		client.getOptions().setAppletEnabled(true);

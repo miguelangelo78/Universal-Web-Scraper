@@ -20,11 +20,11 @@ import com.org.misc.Util;
 
 public class Scraper{
 	
-	public enum Props { USER_AGENT, TIMEOUT, COOKIE, HEADER , PARAMS, REFERRER, METHOD, IGNRCONTTYPE, PROXY, USING_RHINO };
+	public enum Props { USER_AGENT, TIMEOUT, COOKIE, HEADER , PARAMS, REFERRER, METHOD, IGNRCONTTYPE, PROXY, USING_HEADLESS };
 	
 	private int timeout = 60*1000;
 	private String USER_AGENT = "Mozilla/5.0";
-	private boolean is_using_rhino = false;
+	private boolean is_using_headless = false;
 	private boolean is_connected = false;
 	private boolean is_method_set = false;
 	private JSONObject data;
@@ -35,8 +35,8 @@ public class Scraper{
 	// CONSTRUCTORS:
 	public Scraper(){}
 	
-	public Scraper(String urlLogin, String urlDest, Method method, boolean using_rhino, String params, String targets){
-		is_using_rhino = using_rhino;
+	public Scraper(String urlLogin, String urlDest, Method method, boolean using_headless, String params, String targets){
+		is_using_headless = using_headless;
 		auth(urlLogin,urlDest, Util.jsonStringToArray(params));
 		scrape(urlDest, method, targets);
 	}
@@ -46,8 +46,8 @@ public class Scraper{
 		scrape(urlDest, method, targets);
 	}
 	
-	public Scraper(String urlLogin, String urlDest, Method method, boolean using_rhino, String params, String targets, String bytokens){
-		is_using_rhino = using_rhino;
+	public Scraper(String urlLogin, String urlDest, Method method, boolean using_headless, String params, String targets, String bytokens){
+		is_using_headless = using_headless;
 		auth(urlLogin,urlDest, Util.jsonStringToArray(params), Util.jsonStringToArray(bytokens));
 		scrape(urlDest, method, targets);
 	}
@@ -57,18 +57,18 @@ public class Scraper{
 		scrape(urlDest, method, targets);
 	}
 	
-	public Scraper(String urlLogin, String urlDest, Method method, boolean using_rhino, String params, String bytokens, boolean usebytokens){
+	public Scraper(String urlLogin, String urlDest, Method method, boolean using_headless, String params, String bytokens, boolean usebytokens){
 		auth(urlLogin,urlDest, Util.jsonStringToArray(params), Util.jsonStringToArray(bytokens));
-		is_using_rhino = using_rhino;
+		is_using_headless = using_headless;
 	}
 	
 	public Scraper(String urlLogin, String urlDest, Method method, String params, String bytokens, boolean usebytokens){
 		auth(urlLogin,urlDest, Util.jsonStringToArray(params), Util.jsonStringToArray(bytokens));
 	}
 		
-	public Scraper(String urlLogin, String urlDest, Method method, boolean using_rhino, String params){
+	public Scraper(String urlLogin, String urlDest, Method method, boolean using_headless, String params){
 		auth(urlLogin,urlDest, Util.jsonStringToArray(params));
-		is_using_rhino = using_rhino;
+		is_using_headless = using_headless;
 	}
 	
 	public Scraper(String urlLogin, String urlDest, Method method, String params){
@@ -80,15 +80,15 @@ public class Scraper{
 		is_connected = true;
 	}
 	
-	public Scraper(String url, boolean using_rhino){
+	public Scraper(String url, boolean using_headless){
 		conn = Jsoup.connect(url);
 		is_connected = true;
-		is_using_rhino = using_rhino;
+		is_using_headless = using_headless;
 	}
 	
-	public Scraper(String url, Method method, boolean using_rhino, String targets){
+	public Scraper(String url, Method method, boolean using_headless, String targets){
 		scrape(url, method, targets);
-		is_using_rhino = using_rhino;
+		is_using_headless = using_headless;
 	}
 	
 	public Scraper(String url, Method method, String targets){
@@ -130,7 +130,7 @@ public class Scraper{
 			case REFERRER: conn.referrer((String) value); break;
 			case METHOD: is_method_set = true; conn.method((org.jsoup.Connection.Method) value); break;
 			case IGNRCONTTYPE: conn.ignoreContentType((boolean) value); break;
-			case USING_RHINO: is_using_rhino = (boolean) value; break;
+			case USING_HEADLESS: is_using_headless = (boolean) value; break;
 			case PROXY: 
 				String [] keyvals = Util.jsonStringToArray((String) value);
 				System.setProperty("http.proxyHost", keyvals[0]); // Set Proxy Host
@@ -147,7 +147,7 @@ public class Scraper{
 			case HEADER: return conn.response().header(value);
 			case USER_AGENT: return this.USER_AGENT;
 			case METHOD: return conn.response().method();
-			case USING_RHINO: return is_using_rhino;
+			case USING_HEADLESS: return is_using_headless;
 			default: return null;
 		}
 	}
@@ -288,7 +288,7 @@ public class Scraper{
 			execute();
 			
 			Document doc = null;
-			if(is_using_rhino){
+			if(is_using_headless){
 				// Before actually parsing the document, execute the javascript inside the html:
 				RhinoJS engine = new RhinoJS(response_conn.parse().html(), url, cookies_carry); // Add more parameters and launch this on a thread
 				
