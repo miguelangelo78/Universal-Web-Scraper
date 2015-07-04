@@ -13,8 +13,10 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.openqa.selenium.WebDriver;
 
 import com.org.file.ScraperFile;
+import com.org.jsengine.EngineAuthCallback;
 import com.org.jsengine.EngineCallback;
 import com.org.jsengine.PhantomJS;
 import com.org.jsoniterator.JSONIterator;
@@ -22,7 +24,7 @@ import com.org.misc.Util;
 
 public class Scraper{
 	
-	public enum Props { USER_AGENT, TIMEOUT, COOKIE, HEADER , PARAMS, REFERRER, METHOD, IGNRCONTTYPE, PROXY, USING_HEADLESS, ENGINE_GET_CALLBACK };
+	public enum Props { USER_AGENT, TIMEOUT, COOKIE, HEADER , PARAMS, REFERRER, METHOD, IGNRCONTTYPE, PROXY, USING_HEADLESS, ENGINE_GET_CALLBACK , ENGINE_AUTH_CALLBACK};
 	
 	private int timeout = 60*1000;
 	private String USER_AGENT = "Mozilla/5.0";
@@ -32,35 +34,37 @@ public class Scraper{
 	private JSONObject data;
 	public static PhantomJS engine;
 	public static EngineCallback engine_get_callback = null;
+	public static EngineAuthCallback engine_auth_callback = null;
 	
 	private Connection conn;
 	private Response response_conn;
+	private Map<String, String> cookies_auth;
 	
-	// CONSTRUCTORS:
+	// CONSTRUCTORS: ************************************************************************************
 	public Scraper(){}
 	
 	public Scraper(String urlLogin, String urlDest, Method method, boolean using_headless, String params, String targets){
 		is_using_headless = using_headless;
 		engine = new PhantomJS();
 		auth(urlLogin,urlDest, Util.jsonStringToArray(params));
-		scrape(urlDest, method, targets);
+		scrape(urlDest,urlLogin, method, targets);
 	}
 	
 	public Scraper(String urlLogin, String urlDest, Method method, String params, String targets){
 		auth(urlLogin,urlDest, Util.jsonStringToArray(params));
-		scrape(urlDest, method, targets);
+		scrape(urlDest, urlLogin, method, targets);
 	}
 	
 	public Scraper(String urlLogin, String urlDest, Method method, boolean using_headless, String targets,String params, String bytokens){
 		is_using_headless = using_headless;
 		engine = new PhantomJS();
 		auth(urlLogin,urlDest, Util.jsonStringToArray(params), Util.jsonStringToArray(bytokens));
-		scrape(urlDest, method, targets);
+		scrape(urlDest, urlLogin, method, targets);
 	}
 	
 	public Scraper(String urlLogin, String urlDest, Method method, String targets, String params, String bytokens){
 		auth(urlLogin,urlDest, Util.jsonStringToArray(params), Util.jsonStringToArray(bytokens));
-		scrape(urlDest, method, targets);
+		scrape(urlDest, urlLogin, method, targets);
 	}
 	
 	public Scraper(String urlLogin, String urlDest, boolean using_headless, String params, String bytokens){
@@ -83,6 +87,12 @@ public class Scraper{
 		auth(urlLogin,urlDest, Util.jsonStringToArray(params));
 	}
 	
+	public Scraper(String urlLogin, String urlDest, boolean using_headless){
+		is_using_headless = using_headless;
+		engine = new PhantomJS();
+		auth(urlLogin,urlDest, null);
+	}
+	
 	public Scraper(String url){
 		conn = Jsoup.connect(url);
 		is_connected = true;
@@ -96,20 +106,21 @@ public class Scraper{
 	}
 	
 	public Scraper(String url, Method method, boolean using_headless, String targets){
-		scrape(url, method, targets);
+		scrape(url, url, method, targets);
 		is_using_headless = using_headless;
 	}
 	
 	public Scraper(String url, Method method, String targets){
-		scrape(url, method, targets);
+		scrape(url, url, method, targets);
 	}
 	
 	public Scraper(String url, Method method, String targets, boolean run_on_construct){
 		if(!run_on_construct){
 			conn = Jsoup.connect(url);
 			is_connected = true;
-		}else scrape(url, method, targets);
+		}else scrape(url, url, method, targets);
 	}
+	// END CONSTRUCTORS ************************************************************************************
 	
 	// SETTERS AND GETTERS:
 	public Connection getConn() {
@@ -128,6 +139,16 @@ public class Scraper{
 		this.data = data;
 	}
 	
+	public static void setEngineAuthentication(String json_commands){
+		engine_auth_callback = new EngineAuthCallback() {
+			public void on_auth(WebDriver client) {
+				//{<Email>: {send(\"youremail\"), Keys.ENTER, click()}}
+				
+				
+			}
+		};
+	}
+	
 	@SuppressWarnings("unchecked")
 	public void setProperty(Props property, Object value){
 		switch(property){
@@ -141,6 +162,7 @@ public class Scraper{
 			case IGNRCONTTYPE: conn.ignoreContentType((boolean) value); break;
 			case USING_HEADLESS: is_using_headless = (boolean) value; break;
 			case ENGINE_GET_CALLBACK: engine_get_callback = (EngineCallback) value; break;
+			case ENGINE_AUTH_CALLBACK: engine_auth_callback = (EngineAuthCallback) value; break;
 			case PROXY: 
 				String [] keyvals = Util.jsonStringToArray((String) value);
 				System.setProperty("http.proxyHost", keyvals[0]); // Set Proxy Host
@@ -196,6 +218,10 @@ public class Scraper{
 		return all_elements;
 	}
 	
+	void updateCookies(Map<String, String> new_cookies){
+		cookies_auth = new_cookies;
+	}
+	
 	// OUTPUT FUNCTIONS:
 	public void print(){
 		JSONIterator.print(data);
@@ -232,39 +258,49 @@ public class Scraper{
 	}
 	
 	public void auth(String urlLogin, String urlHome, String[] params, String by_tokens[]){
-		boolean bypass_token = by_tokens != null;
-		
-		Map<String, String> params_map = Util.strArray_to_map(params);
-		
-		if(bypass_token){
-			// Add random param bypass in this function
-			connect(urlLogin); is_connected = false;
-			setProperty(Scraper.Props.METHOD, Method.GET);
-			execute();
-			
-			// Fetch random generated field:
-			try {
-				Document curld = response_conn.parse();
-				for(String field: by_tokens)
-					params_map.put(field, curld.select("input[name="+field+"]").val()); // Put the random generated field
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-		
-		// Actually authenticate:
-		connect(urlLogin); is_connected = false;
-		
-		if(bypass_token)
-			setProperty(Scraper.Props.COOKIE, response_conn.cookies()); // Set cookies from 1st GET request for authentication
-		
-		setProperty(Scraper.Props.PARAMS, params_map);
-		setProperty(Scraper.Props.METHOD, Method.POST);
-		setProperty(Scraper.Props.IGNRCONTTYPE, true);
-		
-		execute();
-		
-		connect(urlHome);
+		if(engine_auth_callback==null){
+			boolean bypass_token = by_tokens != null;
+				
+				Map<String, String> params_map = Util.strArray_to_map(params);
+				
+				if(bypass_token){
+					// Add random param bypass in this function
+					connect(urlLogin); is_connected = false;
+					
+					setProperty(Scraper.Props.IGNRCONTTYPE, true);
+					setProperty(Scraper.Props.METHOD, Method.GET);
+					execute();
+					
+					// Fetch random generated field:
+					try {
+						Document curld = response_conn.parse();
+						for(String field: by_tokens)
+							params_map.put(field, curld.select("input[name="+field+"]").val()); // Put the random generated field
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+				
+				// Actually authenticate:
+				connect(urlLogin); is_connected = false;
+				
+				if(bypass_token)
+					setProperty(Scraper.Props.COOKIE, response_conn.cookies()); // Set cookies from 1st GET request for authentication
+				
+				System.out.println("Params: ");
+				System.out.println(params_map);
+				
+				
+				setProperty(Scraper.Props.PARAMS, params_map);
+				setProperty(Scraper.Props.METHOD, Method.POST);
+				setProperty(Scraper.Props.IGNRCONTTYPE, true);
+				
+				execute(); // Authenticate!
+				
+				connect(urlHome);
+				updateCookies(response_conn.cookies());
+		}else
+			updateCookies(engine.auth(engine_auth_callback, urlLogin));
 	}
 	
 	public void auth(String urlLogin, String urlHome, String[] params){
@@ -272,61 +308,57 @@ public class Scraper{
 	}
 	
 	// SCRAPING FUNCTIONS:
-	public Scraper scrape(String url, Method method, String targets){
+	public Scraper scrape(String url, String urlAuth, Method method, String targets){
+		Document final_doc = null; // This document will fill the jsonobject 'targetsObj' object
+		
 		JSONObject targetsObj = null;
-		
-		Connection conn = null;
-		if(!is_connected) conn = Jsoup.connect(url);
-		else conn = this.conn;
-		
-		is_connected = false;
-		
 		try {
-			targetsObj = ((JSONObject)new JSONParser().parse(targets.replaceAll("'","\""))); // JSON to Java Hash/Arrays
+			targetsObj = ((JSONObject) new JSONParser().parse(targets.replaceAll("'","\""))); // JSON to Java Hash/Arrays
+		} catch (ParseException e1) { e1.printStackTrace(); } 
+		
+		if(is_using_headless){
+			// Before actually parsing the document, execute the javascript inside the html:
+			engine.run(url, urlAuth, cookies_auth, engine_get_callback);
 			
-			conn.userAgent(USER_AGENT).timeout(timeout);
-			
-			if(!is_method_set)
-				conn.method(method);
-			
-			is_method_set = false;
-			
-			Map<String, String> cookies_carry = response_conn.cookies(); // Carry the cookies from previous connection
-			
-			// Try to access homepage (intented url), with a headless browser OR regular Jsoup
-			Document doc = null;
-			if(is_using_headless){
-				// Before actually parsing the document, execute the javascript inside the html:
-				engine.run(url, cookies_carry, engine_get_callback);
+			// After the page is finished, parse the result:
+			final_doc = engine.getDocument();
+		}else{
 				
-				// TODO: Now wait and interact with the 'engine' object
+			Connection conn = null;
+			if(!is_connected) conn = Jsoup.connect(url);
+			else conn = this.conn;
+			
+			is_connected = false;
+			
+			try {
+				conn.userAgent(USER_AGENT).timeout(timeout);
 				
-				// After the page is finished, parse the result:
-				doc = engine.getDocument();
-			}
-			else{
-				setProperty(Scraper.Props.COOKIE, cookies_carry); // Set cookies to keep connection on
+				if(!is_method_set)
+					conn.method(method);
+				
+				is_method_set = false;
+				
+				// Try to access homepage (intented url), with a headless browser OR regular Jsoup
+				updateCookies(cookies_auth); // Set cookies to keep connection on
 				execute();
-				
-				doc = response_conn.parse();
-			}
-			
-			JSONIterator.update(targetsObj, doc); // Update the targets!
-			
-		} catch (IOException | ParseException e) {
-			e.printStackTrace();
+					
+				final_doc = response_conn.parse();
+					
+			} catch (IOException e) { e.printStackTrace(); }
 		}
 		
-		data = targetsObj;
+		JSONIterator.update(targetsObj, final_doc); // Update the targets!
+		
+		data = targetsObj; // Data updated
 		return this;
 	}
 	
 	public Scraper scrape(Method method, String targets){
-		return scrape("", method, targets);
+		return scrape("","", method, targets);
 	}
 	
 	public Scraper scrape(String targets){
-		return scrape("", null, targets);
+		return scrape("","", null, targets);
 	}
 	
 	public void end(){

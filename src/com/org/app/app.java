@@ -9,32 +9,30 @@ import com.org.scraper.Scraper;
 public class app {
 
 	public static void main(String[] args) {
+		// TODO: ADD EVALUATION FROM STRING TO AUTHENTICATION COMAMNDS
 		// TODO: ADD CORS BYPASS REQUESTS
 		// TODO: ADD FILE HANDLING (IN AND OUT, BOTH WITH ARRAYS OR SINGLE)
+		// TODO: ADD A LOGGING CLASS
 		
-		String urlLogin = "https://www.facebook.com/login.php?login_attempt=1";
-		String urlHome = "https://www.facebook.com/";
+		String urlLogin = "https://store.steampowered.com/login/";
+		String urlHome = "https://store.steampowered.com/";
 		
 		// Initialize:
-		Scraper result = new Scraper(
-				urlLogin, 
-				urlHome,
-				true,
-				"{email: youremail, pass: yourpassword, persistent: 1, default_persistent: 1, timezone: -60, locale: pt_PT}",
-				"{lsd, lgndim, lgnrnd, lgnjs, qsstamp}"
-		);
+		Scraper.setEngineAuthentication("{<Email>: {send(\"youremail\"), Keys.ENTER, click()}}");
+		
+		Scraper result = new Scraper(urlLogin, urlHome, true);
 		
 		// Set callback:
 		result.setProperty(Scraper.Props.ENGINE_GET_CALLBACK, new EngineCallback() {
 			public void after_get(PhantomJS ctx) {
-				ctx.take_screenshot("C:\\Users\\Me\\Desktop\\screenshot.png", true);
+				ctx.take_screenshot("C:\\Users\\Miguel\\Desktop\\screenshot.png", true);
 			}
 
 			public void before_get(PhantomJS ctx) { }
 		});
 		
-		result.scrape(urlHome, Method.GET, "{'html':'html'}")
-			  .export("C:\\Users\\Me\\Desktop\\scraped.json", false, true);
+		result.scrape(urlHome, urlLogin, Method.GET, "{'html':'html'}")
+			  .export("C:\\Users\\Miguel\\Desktop\\scraped.json", false, true);
 		
 		System.out.println("Done scraping");
 	}

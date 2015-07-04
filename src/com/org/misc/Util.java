@@ -4,6 +4,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.json.simple.JSONObject;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 
 import com.org.jsoniterator.JSONIterator;
 
@@ -64,5 +67,9 @@ public class Util {
 		for(int i=0;i<arr.length-1;i+=2)
 			m.put(arr[i], arr[i+1]);
 		return m;
+	}
+	
+	public static WebElement select(WebDriver client, String cssSelector){
+		return client.findElement(By.cssSelector(cssSelector));
 	}
 }

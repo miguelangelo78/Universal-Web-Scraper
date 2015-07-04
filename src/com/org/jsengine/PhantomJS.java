@@ -27,7 +27,9 @@ public class PhantomJS {
 	
 	private final String PHANTOM_EXECUTABLE = "lib/phantomjs/phantomjs.exe";
 	
-
+	public WebDriver getClient() {
+		return client;
+	}
 	
 	private void setCapabilities(){
 		capabilities = new DesiredCapabilities();
@@ -73,8 +75,8 @@ public class PhantomJS {
 		setProperties();
 	}
 	
-	public void run(String base_url, Map<String, String> cookies, EngineCallback callback){
-		setCookies(getDomainFromUrl(base_url), cookies);
+	public void run(String base_url, String domain_url, Map<String, String> cookies, EngineCallback callback){
+		setCookies(getDomainFromUrl(domain_url), cookies);
 		
 		if(callback!=null) callback.before_get(this);
 		
@@ -100,6 +102,12 @@ public class PhantomJS {
 	public void quit(){
 		client.close();
 		client.quit();
+	}
+	
+	public Map<String, String> auth(EngineAuthCallback callback, String url_base){
+		client.get(url_base);
+		callback.on_auth(client);
+		return EngineAuthCallback.toCookies(client.manage().getCookies());
 	}
 	
 }
