@@ -14,13 +14,14 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import com.org.jsengine.EngineCallback;
 import com.org.jsengine.PhantomJS;
 import com.org.jsoniterator.JSONIterator;
 import com.org.misc.Util;
 
 public class Scraper{
 	
-	public enum Props { USER_AGENT, TIMEOUT, COOKIE, HEADER , PARAMS, REFERRER, METHOD, IGNRCONTTYPE, PROXY, USING_HEADLESS };
+	public enum Props { USER_AGENT, TIMEOUT, COOKIE, HEADER , PARAMS, REFERRER, METHOD, IGNRCONTTYPE, PROXY, USING_HEADLESS, ENGINE_GET_CALLBACK };
 	
 	private int timeout = 60*1000;
 	private String USER_AGENT = "Mozilla/5.0";
@@ -28,7 +29,8 @@ public class Scraper{
 	private boolean is_connected = false;
 	private boolean is_method_set = false;
 	private JSONObject data;
-	private PhantomJS engine;
+	public static PhantomJS engine;
+	public static EngineCallback engine_get_callback = null;
 	
 	private Connection conn;
 	private Response response_conn;
@@ -60,10 +62,10 @@ public class Scraper{
 		scrape(urlDest, method, targets);
 	}
 	
-	public Scraper(String urlLogin, String urlDest, Method method, boolean using_headless, String params, String bytokens, boolean usebytokens){
+	public Scraper(String urlLogin, String urlDest, boolean using_headless, String params, String bytokens){
+		is_using_headless = using_headless;
 		engine = new PhantomJS();
 		auth(urlLogin,urlDest, Util.jsonStringToArray(params), Util.jsonStringToArray(bytokens));
-		is_using_headless = using_headless;
 	}
 	
 	public Scraper(String urlLogin, String urlDest, Method method, String params, String bytokens, boolean usebytokens){
@@ -71,9 +73,9 @@ public class Scraper{
 	}
 		
 	public Scraper(String urlLogin, String urlDest, Method method, boolean using_headless, String params){
+		is_using_headless = using_headless;
 		engine = new PhantomJS();
 		auth(urlLogin,urlDest, Util.jsonStringToArray(params));
-		is_using_headless = using_headless;
 	}
 	
 	public Scraper(String urlLogin, String urlDest, Method method, String params){
@@ -137,6 +139,7 @@ public class Scraper{
 			case METHOD: is_method_set = true; conn.method((org.jsoup.Connection.Method) value); break;
 			case IGNRCONTTYPE: conn.ignoreContentType((boolean) value); break;
 			case USING_HEADLESS: is_using_headless = (boolean) value; break;
+			case ENGINE_GET_CALLBACK: engine_get_callback = (EngineCallback) value; break;
 			case PROXY: 
 				String [] keyvals = Util.jsonStringToArray((String) value);
 				System.setProperty("http.proxyHost", keyvals[0]); // Set Proxy Host
@@ -293,7 +296,7 @@ public class Scraper{
 			Document doc = null;
 			if(is_using_headless){
 				// Before actually parsing the document, execute the javascript inside the html:
-				engine.run(url, cookies_carry);
+				engine.run(url, cookies_carry, engine_get_callback);
 				
 				// TODO: Now wait and interact with the 'engine' object
 				

@@ -1,18 +1,15 @@
 package com.org.app;
 
-import java.io.BufferedWriter;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
-
 import org.jsoup.Connection.Method;
+
+import com.org.file.ScraperFile;
+import com.org.jsengine.EngineCallback;
+import com.org.jsengine.PhantomJS;
 import com.org.scraper.Scraper;
 
 public class app {
 
 	public static void main(String[] args) {
-
 		// TODO: ADD CORS BYPASS REQUESTS
 		// TODO: ADD FILE HANDLING (IN AND OUT, BOTH WITH ARRAYS OR SINGLE)
 		
@@ -22,21 +19,24 @@ public class app {
 		Scraper result = new Scraper(
 				urlLogin, 
 				urlHome,
-				Method.GET,
 				true,
-				"{email: youremail, pass: yourpass, persistent: 1, default_persistent: 1, timezone: -60, locale: pt_PT}",
-				"{'html':'html'}",
+				"{email: youremail, pass: yourpassword, persistent: 1, default_persistent: 1, timezone: -60, locale: pt_PT}",
 				"{lsd, lgndim, lgnrnd, lgnjs, qsstamp}"
 		);
 		
-		Writer writer = null;
+		result.setProperty(Scraper.Props.ENGINE_GET_CALLBACK, new EngineCallback() {
+			public void after_get(PhantomJS ctx) {
+				ctx.take_screenshot("C:\\Users\\Miguel\\Desktop\\screenshot.png", true);
+			}
 
-		try {
-		    writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("facebook_output.json"), "utf-8"));
-		    writer.write(result.toString());
-		    writer.close();
-		} catch (IOException ex) {}
+			public void before_get(PhantomJS ctx) { }
+		});
 		
+		result.scrape(urlHome, Method.GET, "{'html':'html'}");
+		
+		ScraperFile.write("C:\\Users\\Miguel\\Desktop\\scraped.json", result.toString());
+		
+		result.end();
 		System.out.println("Done scraping");
 	}
 }

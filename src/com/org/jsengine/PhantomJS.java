@@ -27,6 +27,8 @@ public class PhantomJS {
 	
 	private final String PHANTOM_EXECUTABLE = "lib/phantomjs/phantomjs.exe";
 	
+
+	
 	private void setCapabilities(){
 		capabilities = new DesiredCapabilities();
 		capabilities.setJavascriptEnabled(true);
@@ -37,6 +39,11 @@ public class PhantomJS {
 		capabilities.setCapability("browserConnectionEnabled", true);
 		capabilities.setCapability("webStorageEnabled", true);
 		capabilities.setCapability("acceptSslCerts", true);
+		
+	}
+	
+	private void setProperties(){
+		client.manage().window().setSize(new Dimension(CLIENT_WIDTH, CLIENT_HEIGHT));
 		
 	}
 	
@@ -63,24 +70,31 @@ public class PhantomJS {
 	public PhantomJS(){
 		setCapabilities();
 		client = new PhantomJSDriver(capabilities);
-		
-		client.manage().window().setSize(new Dimension(CLIENT_WIDTH, CLIENT_HEIGHT));
+		setProperties();
 	}
 	
-	public void run(String base_url, Map<String, String> cookies){
+	public void run(String base_url, Map<String, String> cookies, EngineCallback callback){
 		setCookies(getDomainFromUrl(base_url), cookies);
+		
+		if(callback!=null) callback.before_get(this);
+		
 		client.get(base_url);
 		
-		// Do extra stuff down here, like taking screenshots or interacting with the UI:
-		
-		take_screenshot("C:\\Users\\Miguel\\Desktop\\screenshot.png");
+		if(callback!=null) callback.after_get(this);
 	}
 	
-	private void take_screenshot(String screensht_filepath){
-		File scrFile = ((TakesScreenshot)client).getScreenshotAs(OutputType.FILE);
-		try { 
-			FileUtils.copyFile(scrFile, new File(screensht_filepath));
-		} catch (IOException e) { e.printStackTrace(); }
+	public byte[] take_screenshot(String screensht_filepath, boolean as_file){
+		
+		if(!as_file)
+			return ((TakesScreenshot)client).getScreenshotAs(OutputType.BYTES);
+		else{
+			File scrFile = ((TakesScreenshot)client).getScreenshotAs(OutputType.FILE);
+			try { 
+				FileUtils.copyFile(scrFile, new File(screensht_filepath));
+			} catch (IOException e) { e.printStackTrace(); }
+		}
+		
+		return null;
 	}
 	
 	public void quit(){
