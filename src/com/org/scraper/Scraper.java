@@ -48,14 +48,14 @@ public class Scraper{
 		scrape(urlDest, method, targets);
 	}
 	
-	public Scraper(String urlLogin, String urlDest, Method method, boolean using_headless, String params, String targets, String bytokens){
+	public Scraper(String urlLogin, String urlDest, Method method, boolean using_headless, String targets,String params, String bytokens){
 		is_using_headless = using_headless;
 		engine = new PhantomJS();
 		auth(urlLogin,urlDest, Util.jsonStringToArray(params), Util.jsonStringToArray(bytokens));
 		scrape(urlDest, method, targets);
 	}
 	
-	public Scraper(String urlLogin, String urlDest, Method method, String params, String targets, String bytokens){
+	public Scraper(String urlLogin, String urlDest, Method method, String targets, String params, String bytokens){
 		auth(urlLogin,urlDest, Util.jsonStringToArray(params), Util.jsonStringToArray(bytokens));
 		scrape(urlDest, method, targets);
 	}
@@ -299,7 +299,6 @@ public class Scraper{
 				
 				// After the page is finished, parse the result:
 				doc = engine.getDocument();
-				engine.quit(); // No need to use this anymore
 			}
 			else{
 				setProperty(Scraper.Props.COOKIE, cookies_carry); // Set cookies to keep connection on
@@ -324,6 +323,10 @@ public class Scraper{
 	
 	public Scraper scrape(String targets){
 		return scrape("", null, targets);
+	}
+	
+	public void end(){
+		engine.quit();
 	}
 	
 	public String toString(){

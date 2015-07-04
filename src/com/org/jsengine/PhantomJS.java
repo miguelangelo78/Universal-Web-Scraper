@@ -1,12 +1,18 @@
 package com.org.jsengine;
 
+import java.io.File;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Map;
 
+import org.apache.commons.io.FileUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.openqa.selenium.Cookie;
+import org.openqa.selenium.Dimension;
+import org.openqa.selenium.OutputType;
+import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.phantomjs.PhantomJSDriver;
 import org.openqa.selenium.phantomjs.PhantomJSDriverService;
@@ -15,6 +21,9 @@ import org.openqa.selenium.remote.DesiredCapabilities;
 public class PhantomJS {
 	private WebDriver client;
 	private DesiredCapabilities capabilities;
+	
+	private final int CLIENT_WIDTH = 1920;
+	private final int CLIENT_HEIGHT = 1080;
 	
 	private final String PHANTOM_EXECUTABLE = "lib/phantomjs/phantomjs.exe";
 	
@@ -54,11 +63,24 @@ public class PhantomJS {
 	public PhantomJS(){
 		setCapabilities();
 		client = new PhantomJSDriver(capabilities);
+		
+		client.manage().window().setSize(new Dimension(CLIENT_WIDTH, CLIENT_HEIGHT));
 	}
 	
 	public void run(String base_url, Map<String, String> cookies){
 		setCookies(getDomainFromUrl(base_url), cookies);
 		client.get(base_url);
+		
+		// Do extra stuff down here, like taking screenshots or interacting with the UI:
+		
+		File scrFile = ((TakesScreenshot)client).getScreenshotAs(OutputType.FILE);
+		// Now you can do whatever you need to do with it, for example copy somewhere
+		try {
+			FileUtils.copyFile(scrFile, new File("C:\\Users\\Miguel\\Desktop\\screenshot.png"));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	public void quit(){
