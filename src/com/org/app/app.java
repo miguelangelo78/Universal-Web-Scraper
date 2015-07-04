@@ -1,24 +1,40 @@
 package com.org.app;
+
+import java.io.BufferedWriter;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+
 import org.jsoup.Connection.Method;
 
 import com.org.scraper.Scraper;
 
 public class app {
-		
+
 public static void main(String[] args) {
 		
-		String urlLogin = "https://id.glam.ac.uk/cas/login?service=http%3A%2F%2Funilife.southwales.ac.uk%2Fcas_session";
-		String urlHome = "http://unilife.southwales.ac.uk/";
+		String urlLogin = "https://www.facebook.com/login.php?login_attempt=1";
+		String urlHome = "https://www.facebook.com/";
 		
 		Scraper result = new Scraper(
 				urlLogin, 
 				urlHome,
 				Method.GET,
-				"{username: yourstudentid , password: yourpassword, _eventId: submit, submit: LOGIN}",
+				true,
+				"{email: youremail, pass: yourpassword, persistent: 1, default_persistent: 1, timezone: -60, locale: pt_PT}",
 				"{'html':'html'}",
-				"{lt , execution}"
+				"{lsd, lgndim, lgnrnd, lgnjs, qsstamp}"
 		);
 		
-		System.out.println(result);
+		Writer writer = null;
+
+		try {
+		    writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("facebook_output.json"), "utf-8"));
+		    writer.write(result.toString());
+		    writer.close();
+		} catch (IOException ex) {}
+		
+		System.out.println("Done scraping");
 	}
 }
