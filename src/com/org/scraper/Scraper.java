@@ -14,6 +14,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import com.org.file.ScraperFile;
 import com.org.jsengine.EngineCallback;
 import com.org.jsengine.PhantomJS;
 import com.org.jsoniterator.JSONIterator;
@@ -330,6 +331,16 @@ public class Scraper{
 	
 	public void end(){
 		engine.quit();
+	}
+	
+	public void export(String filepath, boolean to_each_file, boolean end){
+		if(to_each_file){
+			
+		}else
+			ScraperFile.write(filepath, toString());
+		
+		if(end)
+			end();
 	}
 	
 	public String toString(){

@@ -2,7 +2,6 @@ package com.org.app;
 
 import org.jsoup.Connection.Method;
 
-import com.org.file.ScraperFile;
 import com.org.jsengine.EngineCallback;
 import com.org.jsengine.PhantomJS;
 import com.org.scraper.Scraper;
@@ -16,6 +15,7 @@ public class app {
 		String urlLogin = "https://www.facebook.com/login.php?login_attempt=1";
 		String urlHome = "https://www.facebook.com/";
 		
+		// Initialize:
 		Scraper result = new Scraper(
 				urlLogin, 
 				urlHome,
@@ -24,19 +24,18 @@ public class app {
 				"{lsd, lgndim, lgnrnd, lgnjs, qsstamp}"
 		);
 		
+		// Set callback:
 		result.setProperty(Scraper.Props.ENGINE_GET_CALLBACK, new EngineCallback() {
 			public void after_get(PhantomJS ctx) {
-				ctx.take_screenshot("C:\\Users\\Miguel\\Desktop\\screenshot.png", true);
+				ctx.take_screenshot("C:\\Users\\Me\\Desktop\\screenshot.png", true);
 			}
 
 			public void before_get(PhantomJS ctx) { }
 		});
 		
-		result.scrape(urlHome, Method.GET, "{'html':'html'}");
+		result.scrape(urlHome, Method.GET, "{'html':'html'}")
+			  .export("C:\\Users\\Me\\Desktop\\scraped.json", false, true);
 		
-		ScraperFile.write("C:\\Users\\Miguel\\Desktop\\scraped.json", result.toString());
-		
-		result.end();
 		System.out.println("Done scraping");
 	}
 }
