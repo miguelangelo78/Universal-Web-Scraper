@@ -77,6 +77,8 @@ public class RhinoJS {
 		client.getOptions().setPopupBlockerEnabled(true);
 		client.getOptions().setRedirectEnabled(true);
 		client.getOptions().setUseInsecureSSL(true);
+		client.getOptions().setThrowExceptionOnFailingStatusCode(false);
+		client.getOptions().setThrowExceptionOnScriptError(true);
 		client.setAjaxController(new NicelyResynchronizingAjaxController());
 		
 		client.getCookieManager().setCookiesEnabled(true);
