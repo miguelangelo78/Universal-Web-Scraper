@@ -14,6 +14,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import com.org.jsengine.RhinoJS;
 import com.org.jsoniterator.JSONIterator;
 import com.org.misc.Util;
 
@@ -244,11 +245,19 @@ public class Scraper{
 			
 			is_method_set = false;
 			
-			setProperty(Scraper.Props.COOKIE, response_conn.cookies()); // Set cookies to keep connection on
+			Map<String, String> cookies_carry = response_conn.cookies(); // Carry the cookies from previous connection
+			
+			setProperty(Scraper.Props.COOKIE, cookies_carry); // Set cookies to keep connection on
 			
 			execute();
 			
-			JSONIterator.update(targetsObj, response_conn.parse());
+			// Before actually parsing the document, execute the javascript inside the html:
+			RhinoJS engine = new RhinoJS(response_conn.parse().html(), url, cookies_carry); // Add more parameters and launch this on a thread
+			
+			// TODO: Now wait and interact with the 'engine' object
+			
+			// After the page is finished, parse the result:
+			JSONIterator.update(targetsObj, engine.getDocument());
 			
 		} catch (IOException | ParseException e) {
 			e.printStackTrace();
