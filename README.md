@@ -72,3 +72,15 @@ result.scrape(urlHome, Method.GET, "{'html':'html'}")
 
 System.out.println("Done scraping");
 ```
+
+If you don't want to enter manually the parameters of the POST requests for authentication, you can do it manually, which also means you don't have do write your password in your code:
+``` Java
+String urlLogin = "https://www.facebook.com/login.php?login_attempt=1";
+String urlHome = "https://www.facebook.com";
+
+WebScraper.manual_auth = true; // Authenticate manually. A firefox window will popup and will wait for you to login on the website
+WebScraper result = new WebScraper(urlLogin,urlHome, true);
+
+result.scrape(urlHome, urlLogin, null, "{'html':'html'}");
+result.export("C:\\Users\\Me\\Desktop\\out.json", false, true);
+```
