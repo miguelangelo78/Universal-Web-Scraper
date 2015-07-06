@@ -73,7 +73,7 @@ result.scrape(urlHome, Method.GET, "{'html':'html'}")
 System.out.println("Done scraping");
 ```
 
-If you don't want to enter manually the parameters of the POST requests for authentication, you can do it manually, which also means you don't have do write your password in your code:
+If you don't want to enter manually the parameters of the POST request for authentication, you can do it manually, which also means you don't have do write your password in your code:
 ``` Java
 String urlLogin = "https://www.facebook.com/login.php?login_attempt=1";
 String urlHome = "https://www.facebook.com";
