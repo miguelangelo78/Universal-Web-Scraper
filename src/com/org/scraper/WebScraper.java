@@ -22,16 +22,19 @@ import com.org.jsengine.PhantomJS;
 import com.org.jsoniterator.JSONIterator;
 import com.org.misc.Util;
 
-public class Scraper{
+public class WebScraper{
 	
-	public enum Props { USER_AGENT, TIMEOUT, COOKIE, HEADER , PARAMS, REFERRER, METHOD, IGNRCONTTYPE, PROXY, USING_HEADLESS, ENGINE_GET_CALLBACK , ENGINE_AUTH_CALLBACK};
+	public enum Props { 
+		USER_AGENT, TIMEOUT, COOKIE, HEADER , PARAMS, REFERRER, METHOD, 
+		IGNRCONTTYPE, PROXY, USING_HEADLESS, ENGINE_GET_CALLBACK , ENGINE_AUTH_CALLBACK, MANUAL_AUTH};
 	
 	private int timeout = 60*1000;
 	private String USER_AGENT = "Mozilla/5.0";
-	private boolean is_using_headless = false;
+	private JSONObject data;
 	private boolean is_connected = false;
 	private boolean is_method_set = false;
-	private JSONObject data;
+	public static boolean manual_auth = false;
+	public static boolean is_using_headless = false;
 	public static PhantomJS engine;
 	public static EngineCallback engine_get_callback = null;
 	public static EngineAuthCallback engine_auth_callback = null;
@@ -41,80 +44,80 @@ public class Scraper{
 	private Map<String, String> cookies_auth;
 	
 	// CONSTRUCTORS: ************************************************************************************
-	public Scraper(){}
+	public WebScraper(){}
 	
-	public Scraper(String urlLogin, String urlDest, Method method, boolean using_headless, String params, String targets){
+	public WebScraper(String urlLogin, String urlDest, Method method, boolean using_headless, String params, String targets){
 		is_using_headless = using_headless;
 		engine = new PhantomJS();
 		auth(urlLogin,urlDest, Util.jsonStringToArray(params));
 		scrape(urlDest,urlLogin, method, targets);
 	}
 	
-	public Scraper(String urlLogin, String urlDest, Method method, String params, String targets){
+	public WebScraper(String urlLogin, String urlDest, Method method, String params, String targets){
 		auth(urlLogin,urlDest, Util.jsonStringToArray(params));
 		scrape(urlDest, urlLogin, method, targets);
 	}
 	
-	public Scraper(String urlLogin, String urlDest, Method method, boolean using_headless, String targets,String params, String bytokens){
+	public WebScraper(String urlLogin, String urlDest, Method method, boolean using_headless, String targets,String params, String bytokens){
 		is_using_headless = using_headless;
 		engine = new PhantomJS();
 		auth(urlLogin,urlDest, Util.jsonStringToArray(params), Util.jsonStringToArray(bytokens));
 		scrape(urlDest, urlLogin, method, targets);
 	}
 	
-	public Scraper(String urlLogin, String urlDest, Method method, String targets, String params, String bytokens){
+	public WebScraper(String urlLogin, String urlDest, Method method, String targets, String params, String bytokens){
 		auth(urlLogin,urlDest, Util.jsonStringToArray(params), Util.jsonStringToArray(bytokens));
 		scrape(urlDest, urlLogin, method, targets);
 	}
 	
-	public Scraper(String urlLogin, String urlDest, boolean using_headless, String params, String bytokens){
+	public WebScraper(String urlLogin, String urlDest, boolean using_headless, String params, String bytokens){
 		is_using_headless = using_headless;
 		engine = new PhantomJS();
 		auth(urlLogin,urlDest, Util.jsonStringToArray(params), Util.jsonStringToArray(bytokens));
 	}
 	
-	public Scraper(String urlLogin, String urlDest, Method method, String params, String bytokens, boolean usebytokens){
+	public WebScraper(String urlLogin, String urlDest, Method method, String params, String bytokens, boolean usebytokens){
 		auth(urlLogin,urlDest, Util.jsonStringToArray(params), Util.jsonStringToArray(bytokens));
 	}
 		
-	public Scraper(String urlLogin, String urlDest, Method method, boolean using_headless, String params){
+	public WebScraper(String urlLogin, String urlDest, Method method, boolean using_headless, String params){
 		is_using_headless = using_headless;
 		engine = new PhantomJS();
 		auth(urlLogin,urlDest, Util.jsonStringToArray(params));
 	}
 	
-	public Scraper(String urlLogin, String urlDest, Method method, String params){
+	public WebScraper(String urlLogin, String urlDest, Method method, String params){
 		auth(urlLogin,urlDest, Util.jsonStringToArray(params));
 	}
 	
-	public Scraper(String urlLogin, String urlDest, boolean using_headless){
+	public WebScraper(String urlLogin, String urlDest, boolean using_headless){
 		is_using_headless = using_headless;
 		engine = new PhantomJS();
 		auth(urlLogin,urlDest, null);
 	}
 	
-	public Scraper(String url){
+	public WebScraper(String url){
 		conn = Jsoup.connect(url);
 		is_connected = true;
 	}
 	
-	public Scraper(String url, boolean using_headless){
+	public WebScraper(String url, boolean using_headless){
 		engine = new PhantomJS();
 		is_using_headless = using_headless;
 		conn = Jsoup.connect(url);
 		is_connected = true;
 	}
 	
-	public Scraper(String url, Method method, boolean using_headless, String targets){
+	public WebScraper(String url, Method method, boolean using_headless, String targets){
 		scrape(url, url, method, targets);
 		is_using_headless = using_headless;
 	}
 	
-	public Scraper(String url, Method method, String targets){
+	public WebScraper(String url, Method method, String targets){
 		scrape(url, url, method, targets);
 	}
 	
-	public Scraper(String url, Method method, String targets, boolean run_on_construct){
+	public WebScraper(String url, Method method, String targets, boolean run_on_construct){
 		if(!run_on_construct){
 			conn = Jsoup.connect(url);
 			is_connected = true;
@@ -163,6 +166,7 @@ public class Scraper{
 			case USING_HEADLESS: is_using_headless = (boolean) value; break;
 			case ENGINE_GET_CALLBACK: engine_get_callback = (EngineCallback) value; break;
 			case ENGINE_AUTH_CALLBACK: engine_auth_callback = (EngineAuthCallback) value; break;
+			case MANUAL_AUTH: manual_auth = (boolean) value; break;
 			case PROXY: 
 				String [] keyvals = Util.jsonStringToArray((String) value);
 				System.setProperty("http.proxyHost", keyvals[0]); // Set Proxy Host
@@ -258,7 +262,7 @@ public class Scraper{
 	}
 	
 	public void auth(String urlLogin, String urlHome, String[] params, String by_tokens[]){
-		if(engine_auth_callback==null){
+		if(engine_auth_callback==null && !manual_auth){
 			boolean bypass_token = by_tokens != null;
 				
 				Map<String, String> params_map = Util.strArray_to_map(params);
@@ -267,8 +271,8 @@ public class Scraper{
 					// Add random param bypass in this function
 					connect(urlLogin); is_connected = false;
 					
-					setProperty(Scraper.Props.IGNRCONTTYPE, true);
-					setProperty(Scraper.Props.METHOD, Method.GET);
+					setProperty(WebScraper.Props.IGNRCONTTYPE, true);
+					setProperty(WebScraper.Props.METHOD, Method.GET);
 					execute();
 					
 					// Fetch random generated field:
@@ -285,22 +289,22 @@ public class Scraper{
 				connect(urlLogin); is_connected = false;
 				
 				if(bypass_token)
-					setProperty(Scraper.Props.COOKIE, response_conn.cookies()); // Set cookies from 1st GET request for authentication
+					setProperty(WebScraper.Props.COOKIE, response_conn.cookies()); // Set cookies from 1st GET request for authentication
 				
 				System.out.println("Params: ");
 				System.out.println(params_map);
 				
 				
-				setProperty(Scraper.Props.PARAMS, params_map);
-				setProperty(Scraper.Props.METHOD, Method.POST);
-				setProperty(Scraper.Props.IGNRCONTTYPE, true);
+				setProperty(WebScraper.Props.PARAMS, params_map);
+				setProperty(WebScraper.Props.METHOD, Method.POST);
+				setProperty(WebScraper.Props.IGNRCONTTYPE, true);
 				
 				execute(); // Authenticate!
 				
 				connect(urlHome);
 				updateCookies(response_conn.cookies());
 		}else
-			updateCookies(engine.auth(engine_auth_callback, urlLogin));
+			updateCookies(engine.auth(engine_auth_callback, urlLogin, manual_auth));
 	}
 	
 	public void auth(String urlLogin, String urlHome, String[] params){
@@ -308,21 +312,26 @@ public class Scraper{
 	}
 	
 	// SCRAPING FUNCTIONS:
-	public Scraper scrape(String url, String urlAuth, Method method, String targets){
+	public WebScraper scrape(String urlAuth, String url, Method method, String targets){
 		Document final_doc = null; // This document will fill the jsonobject 'targetsObj' object
 		
 		JSONObject targetsObj = null;
-		try {
-			targetsObj = ((JSONObject) new JSONParser().parse(targets.replaceAll("'","\""))); // JSON to Java Hash/Arrays
-		} catch (ParseException e1) { e1.printStackTrace(); } 
+		
+		boolean targetless = targets == null; // This means it's not scraping any data
+		
+		if(!targetless){
+			try {
+				targetsObj = ((JSONObject) new JSONParser().parse(targets.replaceAll("'","\""))); // JSON to Java Hash/Arrays
+			} catch (ParseException e1) { e1.printStackTrace(); } 
+		}
 		
 		if(is_using_headless){
 			// Before actually parsing the document, execute the javascript inside the html:
 			engine.run(url, urlAuth, cookies_auth, engine_get_callback);
 			
 			// After the page is finished, parse the result:
-			final_doc = engine.getDocument();
-		}else{
+			if(!targetless) final_doc = engine.getDocument();
+		}else if(!targetless){
 				
 			Connection conn = null;
 			if(!is_connected) conn = Jsoup.connect(url);
@@ -347,17 +356,19 @@ public class Scraper{
 			} catch (IOException e) { e.printStackTrace(); }
 		}
 		
-		JSONIterator.update(targetsObj, final_doc); // Update the targets!
-		
-		data = targetsObj; // Data updated
+		if(!targetless){
+			JSONIterator.update(targetsObj, final_doc); // Update the targets!
+			
+			data = targetsObj; // Data updated
+		}
 		return this;
 	}
 	
-	public Scraper scrape(Method method, String targets){
+	public WebScraper scrape(Method method, String targets){
 		return scrape("","", method, targets);
 	}
 	
-	public Scraper scrape(String targets){
+	public WebScraper scrape(String targets){
 		return scrape("","", null, targets);
 	}
 	

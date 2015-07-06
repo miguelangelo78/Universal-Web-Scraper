@@ -5,6 +5,9 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Map;
+import java.util.Set;
+
+import javax.swing.JOptionPane;
 
 import org.apache.commons.io.FileUtils;
 import org.jsoup.Jsoup;
@@ -14,6 +17,7 @@ import org.openqa.selenium.Dimension;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.phantomjs.PhantomJSDriver;
 import org.openqa.selenium.phantomjs.PhantomJSDriverService;
 import org.openqa.selenium.remote.DesiredCapabilities;
@@ -76,7 +80,8 @@ public class PhantomJS {
 	}
 	
 	public void run(String base_url, String domain_url, Map<String, String> cookies, EngineCallback callback){
-		setCookies(getDomainFromUrl(domain_url), cookies);
+		if(cookies!=null)
+			setCookies(getDomainFromUrl(domain_url), cookies);
 		
 		if(callback!=null) callback.before_get(this);
 		
@@ -104,10 +109,24 @@ public class PhantomJS {
 		client.quit();
 	}
 	
-	public Map<String, String> auth(EngineAuthCallback callback, String url_base){
-		client.get(url_base);
-		callback.on_auth(client);
-		return EngineAuthCallback.toCookies(client.manage().getCookies());
+	public Map<String, String> auth(EngineAuthCallback callback, String url_base, boolean manual){
+		Set<Cookie> cookies = null;
+		
+		if(manual){
+			WebDriver manual_auth_driver = new FirefoxDriver();
+			manual_auth_driver.get(url_base);
+	
+			JOptionPane.showMessageDialog(null, "Press the OK button after you've logged in");
+			
+			cookies = manual_auth_driver.manage().getCookies();
+			manual_auth_driver.close();
+		}else{
+			client.get(url_base);
+			callback.on_auth(client);
+			cookies = client.manage().getCookies();
+		}
+		
+		return EngineAuthCallback.toCookies(cookies);
 	}
 	
 }
