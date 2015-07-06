@@ -11,7 +11,7 @@ String url = "http://www.reddit.com/";
 
 String targets = "{'title':'head > title', 'content':'.thing'}"; // These css selectors point to which elements to scrape
 
-Scraper result = new Scraper(url, Scraper.Method.GET, targets); // Scrape the data
+WebScraper result = new WebScraper(url, Method.GET, targets); // Scrape the data
 
 result.print(); // Print 100% of data
 
@@ -22,7 +22,7 @@ System.out.println(element.className()); // Output the class name
 
 And if you're feeling like a one liner:
 ``` Java
-Elements[] result = new Scraper("www.reddit.com", Scraper.Method.GET, "{'title':'head > title', 'content':'.thing'}").allElems();
+Elements[] result = new WebScraper("www.reddit.com", Method.GET, "{'title':'head > title', 'content':'.thing'}").allElems();
 ```
 
 It also handles authentication:
@@ -30,7 +30,7 @@ It also handles authentication:
 String urlLogin = "https://www.reddit.com/api/login/yourusername/"; // This url is the actual login page which authenticates and returns the session cookies
 String urlHome = "http://www.reddit.com/"; // Home url, reddit is being used as an example
 
-Scraper result = new Scraper(
+WebScraper result = new WebScraper(
 		urlLogin, 
 		urlHome,
 		Method.GET,
@@ -48,7 +48,7 @@ String urlLogin = "https://www.facebook.com/login.php?login_attempt=1";
 String urlHome = "https://www.facebook.com/";
 
 // Initialize:
-Scraper result = new Scraper(
+WebScraper result = new WebScraper(
 	urlLogin, 
 	urlHome,
 	true,
@@ -57,7 +57,7 @@ Scraper result = new Scraper(
 );
 
 // Set callback:
-result.setProperty(Scraper.Props.ENGINE_GET_CALLBACK, new EngineCallback() {
+result.setProperty(WebScraper.Props.ENGINE_GET_CALLBACK, new EngineCallback() {
 	public void after_get(PhantomJS ctx) {
 		// Take screenshot of your facebook page
 		ctx.take_screenshot("C:\\Users\\Me\\Desktop\\screenshot.png", true);
