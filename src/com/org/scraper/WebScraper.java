@@ -13,7 +13,6 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import org.openqa.selenium.WebDriver;
 
 import com.org.file.ScraperFile;
 import com.org.jsengine.EngineAuthCallback;
@@ -31,6 +30,7 @@ public class WebScraper{
 	private int timeout = 60*1000;
 	private String USER_AGENT = "Mozilla/5.0";
 	private JSONObject data;
+	private Document document;
 	private boolean is_connected = false;
 	private boolean is_method_set = false;
 	public static boolean manual_auth = false;
@@ -126,6 +126,10 @@ public class WebScraper{
 	// END CONSTRUCTORS ************************************************************************************
 	
 	// SETTERS AND GETTERS:
+	public Document getDocument() {
+		return document;
+	}
+
 	public Connection getConn() {
 		return conn;
 	}
@@ -142,14 +146,8 @@ public class WebScraper{
 		this.data = data;
 	}
 	
-	public static void setEngineAuthentication(String json_commands){
-		engine_auth_callback = new EngineAuthCallback() {
-			public void on_auth(WebDriver client) {
-				//{<Email>: {send(\"youremail\"), Keys.ENTER, click()}}
-				
-				
-			}
-		};
+	public static void setEngineAuthentication(EngineAuthCallback callback){
+		engine_auth_callback = callback;
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -291,10 +289,6 @@ public class WebScraper{
 				if(bypass_token)
 					setProperty(WebScraper.Props.COOKIE, response_conn.cookies()); // Set cookies from 1st GET request for authentication
 				
-				System.out.println("Params: ");
-				System.out.println(params_map);
-				
-				
 				setProperty(WebScraper.Props.PARAMS, params_map);
 				setProperty(WebScraper.Props.METHOD, Method.POST);
 				setProperty(WebScraper.Props.IGNRCONTTYPE, true);
@@ -358,7 +352,7 @@ public class WebScraper{
 		
 		if(!targetless){
 			JSONIterator.update(targetsObj, final_doc); // Update the targets!
-			
+			document = final_doc;
 			data = targetsObj; // Data updated
 		}
 		return this;
